@@ -1,15 +1,12 @@
 name: Bunnyshell - Deploy Preview Environment
-
 on:
   workflow_run:
     workflows:
       - "Bunnyshell - Prepare Preview Environment Configuration"
     types:
       - completed
-
 permissions:
   pull-requests: write
-
 jobs:
   load-artifact-from-reusable:
     name: Load artifact values
