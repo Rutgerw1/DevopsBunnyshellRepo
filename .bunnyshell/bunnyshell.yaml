@@ -1,6 +1,7 @@
 kind: Environment
 name: preview
 type: primary
+urlHandle: umpq47
 components:
     -
         kind: Application
