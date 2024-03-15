@@ -1,0 +1,164 @@
+kind: Environment
+name: preview
+type: primary
+urlHandle: bqt3n9
+components:
+    -
+        kind: Application
+        name: chat-app
+        gitRepo: 'https://github.com/Rutgerw1/avans-devops-2324-BjornvanBruchem-RutgerWillems.git'
+        gitBranch: main
+        gitApplicationPath: chat-app
+        dockerCompose:
+            build:
+                context: ./chat-app
+                dockerfile: Dockerfile
+            command:
+                - npm
+                - run
+                - dev
+            environment:
+                MONGO_URL: 'mongodb://admin:admin@devops_chat_database:27017/'
+                PORT: '3550'
+                RABBITMQ_URL: 'amqp://admin:admin@devops_message_bus:5672'
+            ports:
+                - '3551:3550'
+        hosts:
+            -
+                hostname: 'chat-app-{{ env.base_domain }}'
+                path: /
+                servicePort: 3551
+    -
+        kind: Database
+        name: chat-database
+        dockerCompose:
+            environment:
+                MONGO_INITDB_DATABASE: devops_chat
+                MONGO_INITDB_ROOT_PASSWORD: admin
+                MONGO_INITDB_ROOT_USERNAME: admin
+            image: 'mongo:latest'
+            ports:
+                - '27017:27017'
+                - '27002:27017'
+            restart: always
+    -
+        kind: Database
+        name: database
+        dockerCompose:
+            environment:
+                MONGO_INITDB_DATABASE: devops_app
+                MONGO_INITDB_ROOT_PASSWORD: admin
+                MONGO_INITDB_ROOT_USERNAME: admin
+            image: 'mongo:latest'
+            ports:
+                - '27017:27017'
+                - '27001:27017'
+            restart: always
+    -
+        kind: Database
+        name: database-exporter
+        dockerCompose:
+            environment:
+                MONGODB_URI: 'mongodb://admin:admin@devops_database:27017/'
+            image: bitnami/mongodb-exporter
+    -
+        kind: Application
+        name: frontend
+        gitRepo: 'https://github.com/Rutgerw1/avans-devops-2324-BjornvanBruchem-RutgerWillems.git'
+        gitBranch: main
+        gitApplicationPath: angular-app
+        dockerCompose:
+            build:
+                context: ./angular-app
+                dockerfile: Dockerfile
+            environment:
+                NGINX_PORT: '8050'
+            ports:
+                - '8050:80'
+        hosts:
+            -
+                hostname: 'frontend-{{ env.base_domain }}'
+                path: /
+                servicePort: 8050
+    -
+        kind: Application
+        name: grafana
+        gitRepo: 'https://github.com/Rutgerw1/avans-devops-2324-BjornvanBruchem-RutgerWillems.git'
+        gitBranch: main
+        gitApplicationPath: grafana
+        dockerCompose:
+            build:
+                context: ./grafana
+                dockerfile: Dockerfile
+            ports:
+                - '3000:3000'
+        hosts:
+            -
+                hostname: 'grafana-{{ env.base_domain }}'
+                path: /
+                servicePort: 3000
+    -
+        kind: Service
+        name: message-bus
+        dockerCompose:
+            environment:
+                RABBITMQ_DEFAULT_PASS: admin
+                RABBITMQ_DEFAULT_USER: admin
+            image: 'rabbitmq:3-management'
+            ports:
+                - '5672:5672'
+                - '15672:15672'
+        hosts:
+            -
+                hostname: 'message-bus-{{ env.base_domain }}'
+                path: /
+                servicePort: 5672
+    -
+        kind: Application
+        name: node-app
+        gitRepo: 'https://github.com/Rutgerw1/avans-devops-2324-BjornvanBruchem-RutgerWillems.git'
+        gitBranch: main
+        gitApplicationPath: node-app
+        dockerCompose:
+            build:
+                context: ./node-app
+                dockerfile: Dockerfile
+            command:
+                - npm
+                - run
+                - dev
+            environment:
+                MONGO_URL: 'mongodb://admin:admin@devops_database:27017/'
+                PORT: '3050'
+            ports:
+                - '3051:3050'
+        hosts:
+            -
+                hostname: 'node-app-{{ env.base_domain }}'
+                path: /
+                servicePort: 3051
+    -
+        kind: Service
+        name: prometheus
+        dockerCompose:
+            command:
+                - '--web.enable-lifecycle'
+                - '--config.file=/etc/prometheus/prometheus.yml'
+            image: 'prom/prometheus:latest'
+            ports:
+                - '9090:9090'
+        hosts:
+            -
+                hostname: 'prometheus-{{ env.base_domain }}'
+                path: /
+                servicePort: 9090
+        volumes:
+            -
+                name: prometheus-data
+                mount: /prometheus
+                subPath: ''
+volumes:
+    -
+        name: prometheus-data
+        size: 1Gi
+        type: disk

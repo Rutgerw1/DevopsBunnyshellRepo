@@ -1,0 +1,6 @@
+groups:
+  - name: 'DemoAlerts'
+    rules:
+      - alert: 'API is down'
+        expr: up{job='api'} < 1
+        for: 30s

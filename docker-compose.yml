@@ -1,0 +1,108 @@
+version: '3.8'
+services:
+  node_app:
+    container_name: devops_app
+    build:
+      context: ./node-app
+      dockerfile: Dockerfile
+    command: 'npm run dev'
+    ports:
+      - '3051:3050'
+    environment:
+      - PORT=3050
+      - MONGO_URL=mongodb://admin:admin@devops_database:27017/
+      - RABBITMQ_URL=amqp://admin:admin@devops_message_bus:5672
+    depends_on:
+      - database
+    volumes:
+      - './node-app:/node-app'
+  chat_app:
+    container_name: devops_chat_app
+    build:
+      context: ./chat-app
+      dockerfile: Dockerfile
+    command: 'npm run dev'
+    ports:
+      - '3551:3550'
+    environment:
+      - PORT=3550
+      - MONGO_URL=mongodb://admin:admin@devops_chat_database:27017/
+      - RABBITMQ_URL=amqp://admin:admin@devops_message_bus:5672
+    depends_on:
+      - chat_database
+      - message_bus
+    volumes:
+      - './chat-app:/chat-app'
+  frontend:
+    container_name: devops_angular
+    build:
+      context: ./angular-app
+      dockerfile: Dockerfile
+    ports:
+      - '8050:80'
+    environment:
+      - NGINX_PORT=8050
+    depends_on:
+      - node_app
+      - database
+  database:
+    container_name: devops_database
+    image: mongo:latest
+    restart: always
+    expose:
+      - 27017
+    ports:
+      - '27001:27017'
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: admin
+      MONGO_INITDB_DATABASE: devops_app
+  chat_database:
+    container_name: devops_chat_database
+    image: mongo:latest
+    restart: always
+    expose:
+      - 27017
+    ports:
+      - '27002:27017'
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: admin
+      MONGO_INITDB_DATABASE: devops_chat
+  database_exporter:
+    container_name: devops_db_exporter
+    image: bitnami/mongodb-exporter
+    environment:
+      - MONGODB_URI=mongodb://admin:admin@devops_database:27017/
+    depends_on:
+      - database
+  prometheus:
+    container_name: devops_prometheus
+    image: prom/prometheus:latest
+    volumes:
+      - ./prometheus:/etc/prometheus
+      - prometheus_data:/prometheus
+    ports:
+      - '9090:9090'
+    depends_on:
+      - node_app
+      - database_exporter
+    command: '--web.enable-lifecycle --config.file=/etc/prometheus/prometheus.yml'
+  grafana:
+    container_name: devops_grafana
+    build:
+      context: ./grafana
+      dockerfile: Dockerfile
+    ports:
+      - '3000:3000'
+  message_bus:
+    container_name: devops_message_bus
+    image: rabbitmq:3-management
+    ports:
+      - '5672:5672'
+      - '15672:15672'
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: admin
+volumes:
+  prometheus_data: { }
