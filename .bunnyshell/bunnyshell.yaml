@@ -1,7 +1,6 @@
 kind: Environment
 name: preview
 type: primary
-urlHandle: q8sry1
 components:
     -
         kind: Application
