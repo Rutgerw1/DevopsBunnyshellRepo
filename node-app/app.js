@@ -46,6 +46,7 @@ const start = async function () {
         next(createError(404));
     });
 
+    
     app.use(function (err, req, res) {
         res.locals.message = err.message;
         res.locals.error = req.app.get('env') === 'development' ? err : {};
