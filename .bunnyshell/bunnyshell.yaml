@@ -1,12 +1,12 @@
 kind: Environment
 name: preview
 type: primary
-urlHandle: bqt3n9
+urlHandle: q8sry1
 components:
     -
         kind: Application
         name: chat-app
-        gitRepo: 'https://github.com/Rutgerw1/avans-devops-2324-BjornvanBruchem-RutgerWillems.git'
+        gitRepo: 'https://github.com/Rutgerw1/DevopsBunnyshellRepo.git'
         gitBranch: main
         gitApplicationPath: chat-app
         dockerCompose:
@@ -64,7 +64,7 @@ components:
     -
         kind: Application
         name: frontend
-        gitRepo: 'https://github.com/Rutgerw1/avans-devops-2324-BjornvanBruchem-RutgerWillems.git'
+        gitRepo: 'https://github.com/Rutgerw1/DevopsBunnyshellRepo.git'
         gitBranch: main
         gitApplicationPath: angular-app
         dockerCompose:
@@ -83,7 +83,7 @@ components:
     -
         kind: Application
         name: grafana
-        gitRepo: 'https://github.com/Rutgerw1/avans-devops-2324-BjornvanBruchem-RutgerWillems.git'
+        gitRepo: 'https://github.com/Rutgerw1/DevopsBunnyshellRepo.git'
         gitBranch: main
         gitApplicationPath: grafana
         dockerCompose:
@@ -116,7 +116,7 @@ components:
     -
         kind: Application
         name: node-app
-        gitRepo: 'https://github.com/Rutgerw1/avans-devops-2324-BjornvanBruchem-RutgerWillems.git'
+        gitRepo: 'https://github.com/Rutgerw1/DevopsBunnyshellRepo.git'
         gitBranch: main
         gitApplicationPath: node-app
         dockerCompose:
@@ -130,6 +130,7 @@ components:
             environment:
                 MONGO_URL: 'mongodb://admin:admin@devops_database:27017/'
                 PORT: '3050'
+                RABBITMQ_URL: 'amqp://admin:admin@devops_message_bus:5672'
             ports:
                 - '3051:3050'
         hosts:
